@@ -15,7 +15,7 @@
 2. `index.html` खोलें।
 3. Admin के लिए `admin.html` खोलें।
 4. Demo PIN: `7667`
-5. सुरक्षा के लिए `script.js` में `const PIN = "7667";` बदलें।
+5. सुरक्षा के लिए `script.js` में `const PIN = "5347";` बदलें।
 
 ## जरूरी सुरक्षा नोट
 यह version browser/localStorage आधारित है। इसका Admin PIN वास्तविक server-side security नहीं है और photo/event data उसी browser/device में save होता है।
