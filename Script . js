@@ -14,13 +14,16 @@ import {
   getDocs,
   deleteDoc,
   doc,
-  serverTimestamp,
   query,
-  orderBy
+  orderBy,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
+
+/* ================= FIREBASE ================= */
+
 const firebaseConfig = {
-  apiKey: "AIzaSyDk8rPoi14IhKxJc7OXln9wqU2EffDYb-0",
+  apiKey: "AIzaSyDk8rPoi14IhKxJc7OWln9wqU2EffDYb-0",
   authDomain: "yadavniwas-9d443.firebaseapp.com",
   projectId: "yadavniwas-9d443",
   storageBucket: "yadavniwas-9d443.firebasestorage.app",
@@ -29,224 +32,1455 @@ const firebaseConfig = {
   measurementId: "G-XM2Z493YHQ"
 };
 
+const ADMIN_EMAIL = "rajeevkumar161120@gmail.com";
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const DEFAULT_PHOTOS = [
-  {title:"हमारा घर",src:"images/house-front.jpg"},
-  {title:"घर के आसपास की हरियाली",src:"images/garden.jpg"},
-  {title:"प्राकृतिक वातावरण",src:"images/tree-environment.jpg"},
-  {title:"स्थान व विवरण",src:"images/maps-details.jpg"}
-];
 
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g,m=>({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#039;"
-  }[m]));
+/* ================= COLLECTIONS ================= */
+
+const eventsRef = collection(db, "homes");
+const galleryRef = collection(db, "gallery");
+const storiesRef = collection(db, "stories");
+
+
+/* ================= HELPERS ================= */
+
+const $ = (selector) => document.querySelector(selector);
+
+function first(...selectors) {
+  for (const selector of selectors) {
+    const element = $(selector);
+    if (element) return element;
+  }
+  return null;
 }
 
-function renderHome(){
-  const gallery=document.getElementById("galleryGrid");
+function escapeHTML(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
 
-  if(gallery){
-    gallery.innerHTML=DEFAULT_PHOTOS.map(p=>`
-      <figure>
-        <img src="${p.src}" alt="${escapeHtml(p.title)}">
-        <figcaption>${escapeHtml(p.title)}</figcaption>
-      </figure>
-    `).join("");
+function formatDate(value) {
+  if (!value) return "तारीख उपलब्ध नहीं";
+
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return escapeHTML(value);
   }
 
-  const year=document.getElementById("year");
-  if(year) year.textContent=new Date().getFullYear();
-
-  loadEvents();
+  return new Intl.DateTimeFormat("hi-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  }).format(date);
 }
 
-async function loadEvents(){
-  const eventsList=document.getElementById("eventsList");
-  const adminEvents=document.getElementById("adminEvents");
+function isAdmin(user = auth.currentUser) {
+  return !!user &&
+    String(user.email || "").toLowerCase() ===
+    ADMIN_EMAIL.toLowerCase();
+}
 
-  try{
-    const q=query(
-      collection(db,"homes"),
-      orderBy("createdAt","desc")
+async function requireAdmin() {
+  const user = auth.currentUser;
+
+  if (!isAdmin(user)) {
+    throw new Error("Admin authorization required.");
+  }
+
+  return user;
+}
+
+
+/* ================= FIREBASE ERRORS ================= */
+
+function friendlyError(error) {
+
+  const code = error?.code || "";
+
+  const messages = {
+
+    "auth/invalid-credential":
+      "Email या password सही नहीं है।",
+
+    "auth/wrong-password":
+      "Password गलत है।",
+
+    "auth/user-not-found":
+      "यह Gmail Firebase Authentication में नहीं मिला।",
+
+    "auth/invalid-email":
+      "कृपया सही Gmail/email दर्ज करें।",
+
+    "auth/user-disabled":
+      "यह Admin account disabled है।",
+
+    "auth/too-many-requests":
+      "बहुत अधिक login attempts हुए हैं। थोड़ी देर बाद फिर प्रयास करें।",
+
+    "auth/network-request-failed":
+      "Internet connection जाँचें और फिर प्रयास करें।",
+
+    "auth/operation-not-allowed":
+      "Firebase में Email/Password Authentication enabled नहीं है।",
+
+    "permission-denied":
+      "Firestore permission denied है। Firebase Rules जाँचें।"
+
+  };
+
+  return messages[code] ||
+    error?.message ||
+    "कुछ गलत हो गया।";
+}
+
+
+/* =====================================================
+   ADMIN LOGIN
+   पुराने और नए दोनों IDs support होंगे
+===================================================== */
+
+async function login() {
+
+  const emailInput = first(
+    "#admin-email",
+    "#email"
+  );
+
+  const passwordInput = first(
+    "#admin-password",
+    "#password"
+  );
+
+  const message = first(
+    "#login-message",
+    "#loginMessage"
+  );
+
+  const button = first(
+    "#login-btn",
+    "#loginBtn"
+  );
+
+  if (!emailInput || !passwordInput) {
+
+    console.error(
+      "Login inputs नहीं मिले।",
+      emailInput,
+      passwordInput
     );
 
-    const snapshot=await getDocs(q);
-    const events=[];
-
-    snapshot.forEach(item=>{
-      events.push({
-        id:item.id,
-        ...item.data()
-      });
-    });
-
-    if(eventsList){
-      eventsList.innerHTML=events.length
-        ? events.map(x=>`
-          <article class="event">
-            <h3>${escapeHtml(x.title||"")}</h3>
-            <b>${escapeHtml(x.date||"")}</b>
-            <p>${escapeHtml(x.text||"")}</p>
-          </article>
-        `).join("")
-        : "<p>अभी कोई event नहीं जोड़ा गया है।</p>";
+    if (message) {
+      message.textContent =
+        "Login fields नहीं मिले। admin.html जाँचें।";
     }
 
-    if(adminEvents){
-      adminEvents.innerHTML=events.length
-        ? events.map(x=>`
-          <div class="admin-item">
-            <span>🎉 ${escapeHtml(x.title||"")}</span>
-            <button class="danger" data-delete="${x.id}">
-              Delete
-            </button>
-          </div>
-        `).join("")
-        : "<p>कोई event नहीं।</p>";
+    return;
+  }
 
-      document.querySelectorAll("[data-delete]").forEach(button=>{
-        button.addEventListener("click",()=>{
-          deleteEvent(button.dataset.delete);
-        });
-      });
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+
+    if (message) {
+      message.textContent =
+        "Gmail और password दोनों भरें।";
     }
 
-  }catch(error){
-    console.error(error);
+    return;
+  }
 
-    if(eventsList){
-      eventsList.innerHTML="<p>Events load नहीं हो पाए।</p>";
+  if (message) {
+    message.textContent = "Login हो रहा है…";
+  }
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  try {
+
+    const credential =
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+    if (!isAdmin(credential.user)) {
+
+      await signOut(auth);
+
+      if (message) {
+        message.textContent =
+          "यह account Admin account नहीं है।";
+      }
+
+      return;
     }
+
+    if (message) {
+      message.textContent =
+        "Login सफल हो गया।";
+    }
+
+  } catch (error) {
+
+    console.error("Firebase Login Error:", error);
+
+    if (message) {
+      message.textContent =
+        "Login failed: " + friendlyError(error);
+    }
+
+  } finally {
+
+    if (button) {
+      button.disabled = false;
+    }
+
   }
 }
 
-async function login(){
 
-  const email=document.getElementById("email")?.value.trim();
-  const password=document.getElementById("password")?.value;
-  const message=document.getElementById("loginMessage");
+/* ================= LOGOUT ================= */
 
-  if(!email||!password){
-    if(message) message.textContent="Gmail और password दोनों भरें।";
-    return;
-  }
+async function logout() {
 
-  try{
-    await signInWithEmailAndPassword(auth,email,password);
-  }catch(error){
-    console.error(error);
-    if(message) message.textContent="Login failed: "+error.message;
-  }
-}
+  try {
 
-async function addEvent(){
+    await signOut(auth);
 
-  if(!auth.currentUser){
-    alert("पहले Admin Login करें।");
-    return;
-  }
+  } catch (error) {
 
-  const title=document.getElementById("eventTitle")?.value.trim();
-  const date=document.getElementById("eventDate")?.value;
-  const text=document.getElementById("eventText")?.value.trim();
+    console.error(
+      "Logout error:",
+      error
+    );
 
-  if(!title||!text){
-    alert("Event का नाम और विवरण भरें।");
-    return;
-  }
-
-  try{
-    await addDoc(collection(db,"homes"),{
-      title:title,
-      date:date||"तारीख नहीं दी गई",
-      text:text,
-      createdAt:serverTimestamp()
-    });
-
-    document.getElementById("eventTitle").value="";
-    document.getElementById("eventDate").value="";
-    document.getElementById("eventText").value="";
-
-    await loadEvents();
-
-    alert("Event जोड़ दिया गया।");
-
-  }catch(error){
-    console.error(error);
-    alert("Event add नहीं हो पाया।");
   }
 }
 
-async function deleteEvent(id){
 
-  if(!auth.currentUser){
-    alert("पहले Admin Login करें।");
-    return;
+/* =====================================================
+   ADMIN UI
+===================================================== */
+
+function showAdminDashboard(user) {
+
+  const loginBox = first(
+    "#login-panel",
+    "#loginBox"
+  );
+
+  const adminBox = first(
+    "#dashboard-panel",
+    "#adminBox"
+  );
+
+  const userLabel = first(
+    "#signed-in-user",
+    "#adminUser"
+  );
+
+  if (loginBox) {
+    loginBox.classList.add("hidden");
   }
 
-  if(!confirm("यह event हटाएँ?")) return;
-
-  try{
-    await deleteDoc(doc(db,"homes",id));
-    await loadEvents();
-    alert("Event delete हो गया।");
-  }catch(error){
-    console.error(error);
-    alert("Event delete नहीं हो पाया।");
+  if (adminBox) {
+    adminBox.classList.remove("hidden");
   }
-}
 
-function showAdmin(){
-
-  document.getElementById("loginBox")?.classList.add("hidden");
-  document.getElementById("adminBox")?.classList.remove("hidden");
+  if (userLabel) {
+    userLabel.textContent =
+      `Signed in as: ${user.email}`;
+  }
 
   loadEvents();
+  loadGallery();
+  loadStories();
 }
 
-function showLogin(){
 
-  document.getElementById("loginBox")?.classList.remove("hidden");
-  document.getElementById("adminBox")?.classList.add("hidden");
+function showLoginScreen() {
+
+  const loginBox = first(
+    "#login-panel",
+    "#loginBox"
+  );
+
+  const adminBox = first(
+    "#dashboard-panel",
+    "#adminBox"
+  );
+
+  const userLabel = first(
+    "#signed-in-user",
+    "#adminUser"
+  );
+
+  if (loginBox) {
+    loginBox.classList.remove("hidden");
+  }
+
+  if (adminBox) {
+    adminBox.classList.add("hidden");
+  }
+
+  if (userLabel) {
+    userLabel.textContent = "";
+  }
 }
 
-async function logout(){
-  await signOut(auth);
-  showLogin();
-}
 
-document.addEventListener("DOMContentLoaded",()=>{
+/* =====================================================
+   EVENTS
+===================================================== */
 
-  renderHome();
+async function addEvent() {
 
-  document.getElementById("loginBtn")?.addEventListener(
-    "click",
-    login
+  const title = first(
+    "#event-title",
+    "#eventTitle"
   );
 
-  document.getElementById("addEventBtn")?.addEventListener(
-    "click",
-    addEvent
+  const date = first(
+    "#event-date",
+    "#eventDate"
   );
 
-  document.getElementById("logoutBtn")?.addEventListener(
-    "click",
-    logout
+  const text = first(
+    "#event-text",
+    "#eventText"
   );
 
-  onAuthStateChanged(auth,user=>{
-    if(user){
-      showAdmin();
-    }else{
-      showLogin();
+  const message = first(
+    "#event-message",
+    "#eventMessage"
+  );
+
+  if (!title || !date || !text) {
+    console.error("Event fields नहीं मिले।");
+    return;
+  }
+
+  const data = {
+
+    title: title.value.trim(),
+
+    date: date.value,
+
+    text: text.value.trim(),
+
+    createdAt: serverTimestamp()
+
+  };
+
+  if (!data.title ||
+      !data.date ||
+      !data.text) {
+
+    if (message) {
+      message.textContent =
+        "Event title, date और description भरें।";
     }
-  });
-});
+
+    return;
+  }
+
+  try {
+
+    await requireAdmin();
+
+    if (message) {
+      message.textContent =
+        "Event save हो रहा है…";
+    }
+
+    await addDoc(
+      eventsRef,
+      data
+    );
+
+    const form = first(
+      "#event-form",
+      "#eventForm"
+    );
+
+    form?.reset();
+
+    if (message) {
+      message.textContent =
+        "Event सफलतापूर्वक save हो गया।";
+    }
+
+    await loadEvents();
+
+  } catch (error) {
+
+    console.error(
+      "Add event error:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        friendlyError(error);
+    }
+
+  }
+}
+
+
+async function deleteEvent(id) {
+
+  if (!confirm(
+    "क्या आप इस Event को delete करना चाहते हैं?"
+  )) {
+    return;
+  }
+
+  try {
+
+    await requireAdmin();
+
+    await deleteDoc(
+      doc(db, "homes", id)
+    );
+
+    await loadEvents();
+
+  } catch (error) {
+
+    console.error(
+      "Delete event error:",
+      error
+    );
+
+    alert(
+      friendlyError(error)
+    );
+
+  }
+}
+
+
+function eventMarkup(event, admin = false) {
+
+  const title =
+    escapeHTML(
+      event.title || "Event"
+    );
+
+  const date =
+    escapeHTML(
+      formatDate(event.date)
+    );
+
+  const text =
+    escapeHTML(
+      event.text || ""
+    ).replaceAll(
+      "\n",
+      "<br>"
+    );
+
+  return `
+
+    <article class="event-card">
+
+      <div class="event-date">
+        ${date}
+      </div>
+
+      <div class="event-content">
+
+        <h3>
+          ${title}
+        </h3>
+
+        <p>
+          ${text}
+        </p>
+
+      </div>
+
+      ${
+        admin
+          ? `
+            <button
+              type="button"
+              class="delete-event"
+              data-event-id="${escapeHTML(event.id)}">
+              Delete
+            </button>
+          `
+          : ""
+      }
+
+    </article>
+
+  `;
+}
+
+
+async function loadEvents() {
+
+  const homeContainer =
+    first("#home-events");
+
+  const adminContainer =
+    first(
+      "#admin-events",
+      "#adminEvents"
+    );
+
+  if (!homeContainer &&
+      !adminContainer) {
+    return;
+  }
+
+  try {
+
+    const snapshot =
+      await getDocs(
+        query(
+          eventsRef,
+          orderBy("date", "desc")
+        )
+      );
+
+    const events =
+      snapshot.docs.map(
+        item => ({
+          id: item.id,
+          ...item.data()
+        })
+      );
+
+    if (homeContainer) {
+
+      homeContainer.innerHTML =
+        events.length
+          ? events
+              .map(
+                event =>
+                  eventMarkup(event)
+              )
+              .join("")
+          : `
+            <div class="empty-card">
+              अभी कोई event नहीं है।
+            </div>
+          `;
+    }
+
+    if (adminContainer) {
+
+      adminContainer.innerHTML =
+        events.length
+          ? events
+              .map(
+                event =>
+                  eventMarkup(
+                    event,
+                    true
+                  )
+              )
+              .join("")
+          : `
+            <div class="empty-card">
+              अभी कोई saved event नहीं है।
+            </div>
+          `;
+
+      adminContainer
+        .querySelectorAll(
+          ".delete-event"
+        )
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () =>
+              deleteEvent(
+                button.dataset.eventId
+              )
+          );
+
+        });
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Load events error:",
+      error
+    );
+
+    const html = `
+      <div class="empty-card error-card">
+        Events load नहीं हो पाए।
+        <br>
+        ${escapeHTML(
+          friendlyError(error)
+        )}
+      </div>
+    `;
+
+    if (homeContainer) {
+      homeContainer.innerHTML = html;
+    }
+
+    if (adminContainer) {
+      adminContainer.innerHTML = html;
+    }
+
+  }
+}
+
+
+/* =====================================================
+   GALLERY
+===================================================== */
+
+function galleryMarkup(
+  item,
+  admin = false
+) {
+
+  const title =
+    escapeHTML(
+      item.title ||
+      "Yadav Niwas"
+    );
+
+  const src =
+    escapeHTML(
+      item.src || ""
+    );
+
+  return `
+
+    <figure class="gallery-item">
+
+      <img
+        src="${src}"
+        alt="${title}"
+        loading="lazy">
+
+      <figcaption>
+        ${title}
+      </figcaption>
+
+      ${
+        admin
+          ? `
+            <button
+              type="button"
+              class="delete-gallery"
+              data-id="${escapeHTML(item.id)}">
+              Delete
+            </button>
+          `
+          : ""
+      }
+
+    </figure>
+
+  `;
+}
+
+
+async function loadGallery() {
+
+  const homeContainer =
+    first("#dynamic-gallery");
+
+  const adminContainer =
+    first(
+      "#admin-gallery",
+      "#adminGallery"
+    );
+
+  if (!homeContainer &&
+      !adminContainer) {
+    return;
+  }
+
+  try {
+
+    const snapshot =
+      await getDocs(
+        query(
+          galleryRef,
+          orderBy(
+            "createdAt",
+            "desc"
+          )
+        )
+      );
+
+    const items =
+      snapshot.docs.map(
+        item => ({
+          id: item.id,
+          ...item.data()
+        })
+      );
+
+    if (homeContainer) {
+
+      homeContainer.innerHTML =
+        items
+          .map(
+            item =>
+              galleryMarkup(item)
+          )
+          .join("");
+
+    }
+
+    if (adminContainer) {
+
+      adminContainer.innerHTML =
+        items.length
+          ? items
+              .map(
+                item =>
+                  galleryMarkup(
+                    item,
+                    true
+                  )
+              )
+              .join("")
+          : `
+            <div class="empty-card">
+              अभी कोई नई photo नहीं है।
+            </div>
+          `;
+
+      adminContainer
+        .querySelectorAll(
+          ".delete-gallery"
+        )
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () =>
+              deleteGalleryItem(
+                button.dataset.id
+              )
+          );
+
+        });
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Gallery error:",
+      error
+    );
+
+  }
+}
+
+
+async function addGalleryItem() {
+
+  const title =
+    first(
+      "#gallery-title",
+      "#galleryTitle"
+    );
+
+  const path =
+    first(
+      "#gallery-path",
+      "#galleryPath"
+    );
+
+  const message =
+    first(
+      "#gallery-message",
+      "#galleryMessage"
+    );
+
+  if (!title || !path) {
+    return;
+  }
+
+  const titleValue =
+    title.value.trim();
+
+  const pathValue =
+    path.value.trim();
+
+  if (!titleValue ||
+      !pathValue) {
+
+    if (message) {
+      message.textContent =
+        "Photo title और image path भरें।";
+    }
+
+    return;
+  }
+
+  if (!pathValue.startsWith(
+    "images/"
+  )) {
+
+    if (message) {
+      message.textContent =
+        "Image path images/ से शुरू होना चाहिए।";
+    }
+
+    return;
+  }
+
+  try {
+
+    await requireAdmin();
+
+    await addDoc(
+      galleryRef,
+      {
+        title: titleValue,
+        src: pathValue,
+        createdAt:
+          serverTimestamp()
+      }
+    );
+
+    const form =
+      first(
+        "#gallery-form",
+        "#galleryForm"
+      );
+
+    form?.reset();
+
+    if (message) {
+      message.textContent =
+        "Photo Gallery में add हो गई।";
+    }
+
+    await loadGallery();
+
+  } catch (error) {
+
+    console.error(
+      "Gallery add error:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        friendlyError(error);
+    }
+
+  }
+}
+
+
+async function deleteGalleryItem(id) {
+
+  if (!confirm(
+    "Gallery entry delete करें?"
+  )) {
+    return;
+  }
+
+  try {
+
+    await requireAdmin();
+
+    await deleteDoc(
+      doc(
+        db,
+        "gallery",
+        id
+      )
+    );
+
+    await loadGallery();
+
+  } catch (error) {
+
+    alert(
+      friendlyError(error)
+    );
+
+  }
+}
+
+
+/* =====================================================
+   STORIES / UPDATES
+===================================================== */
+
+function storyMarkup(
+  story,
+  admin = false
+) {
+
+  const title =
+    escapeHTML(
+      story.title ||
+      "Update"
+    );
+
+  const date =
+    escapeHTML(
+      formatDate(
+        story.date
+      )
+    );
+
+  const text =
+    escapeHTML(
+      story.text || ""
+    ).replaceAll(
+      "\n",
+      "<br>"
+    );
+
+  const photo =
+    story.photo
+      ? `
+        <img
+          src="${escapeHTML(story.photo)}"
+          alt="${title}"
+          loading="lazy">
+      `
+      : "";
+
+  return `
+
+    <article class="story-card">
+
+      ${photo}
+
+      <div class="story-body">
+
+        <div class="story-date">
+          ${date}
+        </div>
+
+        <h3>
+          ${title}
+        </h3>
+
+        <p>
+          ${text}
+        </p>
+
+        ${
+          admin
+            ? `
+              <button
+                type="button"
+                class="delete-story"
+                data-story-id="${escapeHTML(story.id)}">
+                Delete
+              </button>
+            `
+            : ""
+        }
+
+      </div>
+
+    </article>
+
+  `;
+}
+
+
+async function loadStories() {
+
+  const homeContainer =
+    first("#home-stories");
+
+  const adminContainer =
+    first(
+      "#admin-stories",
+      "#adminStories"
+    );
+
+  if (!homeContainer &&
+      !adminContainer) {
+    return;
+  }
+
+  try {
+
+    const snapshot =
+      await getDocs(
+        query(
+          storiesRef,
+          orderBy(
+            "date",
+            "desc"
+          )
+        )
+      );
+
+    let stories =
+      snapshot.docs.map(
+        item => ({
+          id: item.id,
+          ...item.data()
+        })
+      );
+
+    if (homeContainer) {
+
+      stories =
+        stories.filter(
+          story =>
+            story.published === true
+        );
+
+    }
+
+    if (homeContainer) {
+
+      homeContainer.innerHTML =
+        stories.length
+          ? stories
+              .map(
+                story =>
+                  storyMarkup(story)
+              )
+              .join("")
+          : `
+            <div class="empty-card">
+              अभी कोई update नहीं है।
+            </div>
+          `;
+
+    }
+
+    if (adminContainer) {
+
+      adminContainer.innerHTML =
+        stories.length
+          ? stories
+              .map(
+                story =>
+                  storyMarkup(
+                    story,
+                    true
+                  )
+              )
+              .join("")
+          : `
+            <div class="empty-card">
+              अभी कोई saved story नहीं है।
+            </div>
+          `;
+
+      adminContainer
+        .querySelectorAll(
+          ".delete-story"
+        )
+        .forEach(button => {
+
+          button.addEventListener(
+            "click",
+            () =>
+              deleteStory(
+                button.dataset.storyId
+              )
+          );
+
+        });
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Stories error:",
+      error
+    );
+
+  }
+}
+
+
+async function addStory() {
+
+  const title =
+    first(
+      "#story-title",
+      "#storyTitle"
+    );
+
+  const date =
+    first(
+      "#story-date",
+      "#storyDate"
+    );
+
+  const text =
+    first(
+      "#story-text",
+      "#storyText"
+    );
+
+  const photo =
+    first(
+      "#story-photo",
+      "#storyPhoto"
+    );
+
+  const published =
+    first(
+      "#story-published",
+      "#storyPublished"
+    );
+
+  const message =
+    first(
+      "#story-message",
+      "#storyMessage"
+    );
+
+  if (!title ||
+      !date ||
+      !text) {
+    return;
+  }
+
+  const data = {
+
+    title:
+      title.value.trim(),
+
+    date:
+      date.value,
+
+    text:
+      text.value.trim(),
+
+    photo:
+      photo?.value.trim() || "",
+
+    published:
+      published
+        ? published.checked
+        : true,
+
+    createdAt:
+      serverTimestamp()
+
+  };
+
+  if (!data.title ||
+      !data.date ||
+      !data.text) {
+
+    if (message) {
+      message.textContent =
+        "Title, date और text भरना जरूरी है।";
+    }
+
+    return;
+  }
+
+  if (
+    data.photo &&
+    !data.photo.startsWith(
+      "images/"
+    )
+  ) {
+
+    if (message) {
+      message.textContent =
+        "Photo path images/ से शुरू होना चाहिए।";
+    }
+
+    return;
+  }
+
+  try {
+
+    await requireAdmin();
+
+    await addDoc(
+      storiesRef,
+      data
+    );
+
+    const form =
+      first(
+        "#story-form",
+        "#storyForm"
+      );
+
+    form?.reset();
+
+    if (message) {
+      message.textContent =
+        "Story / Update save हो गई।";
+    }
+
+    await loadStories();
+
+  } catch (error) {
+
+    console.error(
+      "Story error:",
+      error
+    );
+
+    if (message) {
+      message.textContent =
+        friendlyError(error);
+    }
+
+  }
+}
+
+
+async function deleteStory(id) {
+
+  if (!confirm(
+    "क्या यह Story / Update delete करनी है?"
+  )) {
+    return;
+  }
+
+  try {
+
+    await requireAdmin();
+
+    await deleteDoc(
+      doc(
+        db,
+        "stories",
+        id
+      )
+    );
+
+    await loadStories();
+
+  } catch (error) {
+
+    alert(
+      friendlyError(error)
+    );
+
+  }
+}
+
+
+/* =====================================================
+   HOME
+===================================================== */
+
+function setupHome() {
+
+  const year =
+    $("#year");
+
+  if (year) {
+    year.textContent =
+      new Date().getFullYear();
+  }
+
+  loadEvents();
+  loadGallery();
+  loadStories();
+}
+
+
+/* =====================================================
+   ADMIN SETUP
+===================================================== */
+
+function setupAdmin() {
+
+  /* FORM SUBMIT */
+
+  $("#login-form")
+    ?.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+        login();
+      }
+    );
+
+
+  /* OLD LOGIN BUTTON */
+
+  $("#loginBtn")
+    ?.addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        login();
+      }
+    );
+
+
+  /* NEW LOGIN BUTTON */
+
+  $("#login-btn")
+    ?.addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        login();
+      }
+    );
+
+
+  /* LOGOUT */
+
+  $("#logout-btn")
+    ?.addEventListener(
+      "click",
+      logout
+    );
+
+  $("#logoutBtn")
+    ?.addEventListener(
+      "click",
+      logout
+    );
+
+
+  /* EVENT */
+
+  $("#event-form")
+    ?.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+        addEvent();
+      }
+    );
+
+  $("#addEventBtn")
+    ?.addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        addEvent();
+      }
+    );
+
+  $("#add-event-btn")
+    ?.addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        addEvent();
+      }
+    );
+
+
+  /* GALLERY */
+
+  $("#gallery-form")
+    ?.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+        addGalleryItem();
+      }
+    );
+
+  $("#addGalleryBtn")
+    ?.addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        addGalleryItem();
+      }
+    );
+
+
+  /* STORIES */
+
+  $("#story-form")
+    ?.addEventListener(
+      "submit",
+      event => {
+        event.preventDefault();
+        addStory();
+      }
+    );
+
+  $("#addStoryBtn")
+    ?.addEventListener(
+      "click",
+      event => {
+        event.preventDefault();
+        addStory();
+      }
+    );
+
+
+  /* AUTH STATE */
+
+  onAuthStateChanged(
+    auth,
+    async user => {
+
+      if (user && isAdmin(user)) {
+
+        showAdminDashboard(user);
+
+      } else {
+
+        if (user) {
+          await signOut(auth);
+        }
+
+        showLoginScreen();
+
+      }
+
+    }
+  );
+
+}
+
+
+/* =====================================================
+   START
+===================================================== */
+
+if (
+  document.body.dataset.page === "home"
+) {
+
+  setupHome();
+
+}
+
+if (
+  document.body.dataset.page === "admin"
+) {
+
+  setupAdmin();
+
+}
