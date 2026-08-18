@@ -1,71 +1,160 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#176b5b">
-<title>स्वागत है — Yadav Niwas</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Yadav Niwas — परिवार, सुकून और अपनापन से जुड़ा हमारा अपना घर।">
+  <title>Yadav Niwas | हमारा अपना घर</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
-<header class="hero">
-  <nav>
-    <div class="brand">🏡 Yadav Niwas</div>
-    <a href="admin.html" class="admin-link">Admin</a>
-  </nav>
-  <div class="hero-content">
-    <p class="eyebrow">हमारे घर की अपनी छोटी-सी दुनिया</p>
-    <h1>Welcome to<br><span>Yadav Niwas</span></h1>
-    <p class="lead">सादगी, अपनापन और हरियाली से भरा हमारा घर — जहाँ यादें बनती हैं और मेहमानों का स्वागत दिल से होता है।</p>
-    <div class="hero-buttons">
-      <a href="#about" class="btn primary">घर के बारे में</a>
-      <a href="#gallery" class="btn ghost">फोटो देखें</a>
+<body data-page="home">
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html" aria-label="Yadav Niwas Home">
+        <span class="brand-mark">YN</span>
+        <span>
+          <strong>Yadav Niwas</strong>
+          <small>हमारा अपना घर</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="मुख्य मेनू">
+        <a href="#about">हमारे बारे में</a>
+        <a href="#nature">हरियाली</a>
+        <a href="#gallery">तस्वीरें</a>
+        <a href="#events">यादें</a>
+        <a href="#stories">Updates</a>
+      </nav>
+      <a class="nav-map" href="https://www.google.com/maps/search/?api=1&query=Sri+Roshan+Rai+House%2C+Sondhani%2C+Bihar+841408" target="_blank" rel="noopener noreferrer">📍 Maps</a>
     </div>
-  </div>
-</header>
+  </header>
 
-<main>
-<section id="about" class="section">
-  <div class="section-title"><span>01</span><h2>हमारे घर के बारे में</h2></div>
-  <div class="about-grid">
-    <div>
-      <p>Yadav Niwas हमारा अपना घर है, जो परिवार, सुकून और अपनापन की खूबसूरत यादों से जुड़ा हुआ है। घर के आसपास की हरियाली और पेड़-पौधे वातावरण को शांत और मनमोहक बनाते हैं।</p>
-      <p>यह जगह हमारे लिए सिर्फ एक मकान नहीं, बल्कि परिवार की यादों, त्योहारों, मिलन और रोज़मर्रा की खुशियों का हिस्सा है।</p>
+  <main>
+    <section class="hero">
+      <div class="hero-image" role="img" aria-label="Yadav Niwas"></div>
+      <div class="hero-overlay"></div>
+      <div class="container hero-content">
+        <p class="eyebrow">परिवार • सुकून • अपनापन</p>
+        <h1>Yadav <span>Niwas</span></h1>
+        <p class="hero-subtitle">हमारा अपना घर, हमारी खूबसूरत यादों का पता।</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#about">घर के बारे में</a>
+          <a class="btn btn-glass" href="https://www.google.com/maps/search/?api=1&query=Sri+Roshan+Rai+House%2C+Sondhani%2C+Bihar+841408" target="_blank" rel="noopener noreferrer">Google Maps खोलें</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="about" class="section about-section">
+      <div class="container two-column">
+        <div>
+          <p class="section-kicker">हमारा घर</p>
+          <h2>जहाँ हर कोना अपनी एक कहानी कहता है</h2>
+          <p class="lead">Yadav Niwas हमारा अपना घर है, जो परिवार, सुकून और अपनापन की खूबसूरत यादों से जुड़ा हुआ है। घर के आसपास की हरियाली और पेड़-पौधे वातावरण को शांत और मनमोहक बनाते हैं।</p>
+          <div class="address-card">
+            <span class="icon-circle">⌂</span>
+            <div>
+              <strong>पता</strong>
+              <p>सोनधानी, बिहार 841408</p>
+            </div>
+          </div>
+        </div>
+        <div class="about-card">
+          <img src="images/house-front.jpg" alt="Yadav Niwas का घर" loading="lazy">
+          <div class="about-card-caption">
+            <span>हमारा निवास</span>
+            <span>सोनधानी • बिहार</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="nature" class="section nature-section">
+      <div class="container">
+        <div class="section-heading centered">
+          <p class="section-kicker">प्रकृति के करीब</p>
+          <h2>हरियाली में बसा सुकून</h2>
+          <p>पेड़-पौधों और खुले वातावरण की वजह से Yadav Niwas की अपनी एक शांत और प्राकृतिक पहचान है।</p>
+        </div>
+        <div class="nature-grid">
+          <article class="feature-card">
+            <div class="feature-image"><img src="images/garden.jpg" alt="घर का बगीचा" loading="lazy"></div>
+            <div class="feature-body"><span class="feature-number">01</span><h3>हरा-भरा आंगन</h3><p>प्रकृति के बीच परिवार के साथ बिताए सुकून भरे पल।</p></div>
+          </article>
+          <article class="feature-card">
+            <div class="feature-image"><img src="images/tree-environment.jpg" alt="पेड़ और प्राकृतिक वातावरण" loading="lazy"></div>
+            <div class="feature-body"><span class="feature-number">02</span><h3>पेड़-पौधों की छांव</h3><p>हरियाली वातावरण को ठंडा, शांत और मनमोहक बनाती है।</p></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery" class="section gallery-section">
+      <div class="container">
+        <div class="section-heading">
+          <p class="section-kicker">हमारी तस्वीरें</p>
+          <h2>Yadav Niwas की झलक</h2>
+        </div>
+        <div class="gallery-grid">
+          <figure class="gallery-item gallery-large"><img src="images/house-front.jpg" alt="Yadav Niwas का सामने का दृश्य" loading="lazy"><figcaption>घर का सामने का दृश्य</figcaption></figure>
+          <figure class="gallery-item"><img src="images/garden.jpg" alt="बगीचे की तस्वीर" loading="lazy"><figcaption>हरा-भरा बगीचा</figcaption></figure>
+          <figure class="gallery-item"><img src="images/tree-environment.jpg" alt="पेड़-पौधों का वातावरण" loading="lazy"><figcaption>प्राकृतिक वातावरण</figcaption></figure>
+          <figure class="gallery-item"><img src="images/maps-details.jpg" alt="Yadav Niwas का स्थान विवरण" loading="lazy"><figcaption>स्थान की जानकारी</figcaption></figure>
+        </div>
+        <div id="dynamic-gallery" class="gallery-grid dynamic-gallery" aria-live="polite"></div>
+      </div>
+    </section>
+
+    <section id="events" class="section events-section">
+      <div class="container">
+        <div class="section-heading centered">
+          <p class="section-kicker">यादें और अवसर</p>
+          <h2>Events & Memories</h2>
+          <p>परिवार के खास दिनों और खूबसूरत यादों को यहाँ संजोकर रखें।</p>
+        </div>
+        <div id="home-events" class="events-list">
+          <div class="loading-card">यादें लोड हो रही हैं…</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="stories" class="section stories-section">
+      <div class="container">
+        <div class="section-heading centered">
+          <p class="section-kicker">Stories & Updates</p>
+          <h2>नई बातें और यादें</h2>
+          <p>Yadav Niwas की नई updates, छोटी-बड़ी बातें और खास कहानियाँ।</p>
+        </div>
+        <div id="home-stories" class="stories-grid">
+          <div class="loading-card">Updates लोड हो रही हैं…</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="map-cta">
+      <div class="container map-inner">
+        <div>
+          <p class="section-kicker">हमसे जुड़ें</p>
+          <h2>Yadav Niwas तक पहुँचें</h2>
+          <p>सोनधानी, बिहार 841408</p>
+        </div>
+        <a class="btn btn-primary" href="https://www.google.com/maps/search/?api=1&query=Sri+Roshan+Rai+House%2C+Sondhani%2C+Bihar+841408" target="_blank" rel="noopener noreferrer">📍 Google Maps पर देखें</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <div>
+        <div class="footer-brand">Yadav Niwas</div>
+        <p>परिवार, सुकून और अपनापन।</p>
+      </div>
+      <div class="footer-right">
+        <span>सोनधानी, बिहार 841408</span>
+        <a href="admin.html">Admin</a>
+      </div>
     </div>
-    <div class="quote">“घर वही है जहाँ दीवारों से ज्यादा रिश्ते मजबूत होते हैं।”</div>
-  </div>
-</section>
+    <div class="container copyright">© <span id="year"></span> Yadav Niwas. सभी अधिकार सुरक्षित।</div>
+  </footer>
 
-<section class="section environment">
-  <div class="section-title"><span>02</span><h2>हमारा वातावरण</h2></div>
-  <div class="env-cards">
-    <article><div class="icon">🌳</div><h3>हरियाली</h3><p>आसपास के पेड़-पौधे घर को प्राकृतिक और सुकून भरा माहौल देते हैं।</p></article>
-    <article><div class="icon">☀️</div><h3>खुला माहौल</h3><p>रोशनी और खुले वातावरण के साथ घर में एक शांत और प्राकृतिक एहसास है।</p></article>
-    <article><div class="icon">❤️</div><h3>अपनापन</h3><p>परिवार और मेहमानों के लिए प्यार और सम्मान इस घर की सबसे खास पहचान है।</p></article>
-  </div>
-</section>
-
-<section id="gallery" class="section">
-  <div class="section-title"><span>03</span><h2>घर की तस्वीरें</h2></div>
-  <div id="galleryGrid" class="gallery"></div>
-</section>
-
-<section id="events" class="section">
-  <div class="section-title"><span>04</span><h2>हमारी यादें & Events</h2></div>
-  <div id="eventsList" class="events"></div>
-</section>
-
-<section class="contact section">
-  <div>
-    <p class="eyebrow">मिलिए Yadav Niwas से</p>
-    <h2>हमारा घर, हमारी पहचान ❤️</h2>
-    <p>सोनधानी, बिहार 841408</p>
-    <a class="btn primary" target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=Sri+Roshan+Rai+House%2C+Sondhani%2C+Bihar+841408">📍 Google Maps पर देखें</a>
-  </div>
-</section>
-</main>
-
-<footer>© <span id="year"></span> Yadav Niwas · Made with ❤️ for family memories</footer>
-<script src="script.js"></script>
+  <script type="module" src="script.js"></script>
 </body>
 </html>
