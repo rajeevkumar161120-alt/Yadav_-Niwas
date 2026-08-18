@@ -1,0 +1,252 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  serverTimestamp,
+  query,
+  orderBy
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDk8rPoi14IhKxJc7OXln9wqU2EffDYb-0",
+  authDomain: "yadavniwas-9d443.firebaseapp.com",
+  projectId: "yadavniwas-9d443",
+  storageBucket: "yadavniwas-9d443.firebasestorage.app",
+  messagingSenderId: "325986703199",
+  appId: "1:325986703199:web:d16d39a37178614f7588ea",
+  measurementId: "G-XM2Z493YHQ"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const DEFAULT_PHOTOS = [
+  {title:"हमारा घर",src:"images/house-front.jpg"},
+  {title:"घर के आसपास की हरियाली",src:"images/garden.jpg"},
+  {title:"प्राकृतिक वातावरण",src:"images/tree-environment.jpg"},
+  {title:"स्थान व विवरण",src:"images/maps-details.jpg"}
+];
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  }[m]));
+}
+
+function renderHome(){
+  const gallery=document.getElementById("galleryGrid");
+
+  if(gallery){
+    gallery.innerHTML=DEFAULT_PHOTOS.map(p=>`
+      <figure>
+        <img src="${p.src}" alt="${escapeHtml(p.title)}">
+        <figcaption>${escapeHtml(p.title)}</figcaption>
+      </figure>
+    `).join("");
+  }
+
+  const year=document.getElementById("year");
+  if(year) year.textContent=new Date().getFullYear();
+
+  loadEvents();
+}
+
+async function loadEvents(){
+  const eventsList=document.getElementById("eventsList");
+  const adminEvents=document.getElementById("adminEvents");
+
+  try{
+    const q=query(
+      collection(db,"homes"),
+      orderBy("createdAt","desc")
+    );
+
+    const snapshot=await getDocs(q);
+    const events=[];
+
+    snapshot.forEach(item=>{
+      events.push({
+        id:item.id,
+        ...item.data()
+      });
+    });
+
+    if(eventsList){
+      eventsList.innerHTML=events.length
+        ? events.map(x=>`
+          <article class="event">
+            <h3>${escapeHtml(x.title||"")}</h3>
+            <b>${escapeHtml(x.date||"")}</b>
+            <p>${escapeHtml(x.text||"")}</p>
+          </article>
+        `).join("")
+        : "<p>अभी कोई event नहीं जोड़ा गया है।</p>";
+    }
+
+    if(adminEvents){
+      adminEvents.innerHTML=events.length
+        ? events.map(x=>`
+          <div class="admin-item">
+            <span>🎉 ${escapeHtml(x.title||"")}</span>
+            <button class="danger" data-delete="${x.id}">
+              Delete
+            </button>
+          </div>
+        `).join("")
+        : "<p>कोई event नहीं।</p>";
+
+      document.querySelectorAll("[data-delete]").forEach(button=>{
+        button.addEventListener("click",()=>{
+          deleteEvent(button.dataset.delete);
+        });
+      });
+    }
+
+  }catch(error){
+    console.error(error);
+
+    if(eventsList){
+      eventsList.innerHTML="<p>Events load नहीं हो पाए।</p>";
+    }
+  }
+}
+
+async function login(){
+
+  const email=document.getElementById("email")?.value.trim();
+  const password=document.getElementById("password")?.value;
+  const message=document.getElementById("loginMessage");
+
+  if(!email||!password){
+    if(message) message.textContent="Gmail और password दोनों भरें।";
+    return;
+  }
+
+  try{
+    await signInWithEmailAndPassword(auth,email,password);
+  }catch(error){
+    console.error(error);
+    if(message) message.textContent="Login failed: "+error.message;
+  }
+}
+
+async function addEvent(){
+
+  if(!auth.currentUser){
+    alert("पहले Admin Login करें।");
+    return;
+  }
+
+  const title=document.getElementById("eventTitle")?.value.trim();
+  const date=document.getElementById("eventDate")?.value;
+  const text=document.getElementById("eventText")?.value.trim();
+
+  if(!title||!text){
+    alert("Event का नाम और विवरण भरें।");
+    return;
+  }
+
+  try{
+    await addDoc(collection(db,"homes"),{
+      title:title,
+      date:date||"तारीख नहीं दी गई",
+      text:text,
+      createdAt:serverTimestamp()
+    });
+
+    document.getElementById("eventTitle").value="";
+    document.getElementById("eventDate").value="";
+    document.getElementById("eventText").value="";
+
+    await loadEvents();
+
+    alert("Event जोड़ दिया गया।");
+
+  }catch(error){
+    console.error(error);
+    alert("Event add नहीं हो पाया।");
+  }
+}
+
+async function deleteEvent(id){
+
+  if(!auth.currentUser){
+    alert("पहले Admin Login करें।");
+    return;
+  }
+
+  if(!confirm("यह event हटाएँ?")) return;
+
+  try{
+    await deleteDoc(doc(db,"homes",id));
+    await loadEvents();
+    alert("Event delete हो गया।");
+  }catch(error){
+    console.error(error);
+    alert("Event delete नहीं हो पाया।");
+  }
+}
+
+function showAdmin(){
+
+  document.getElementById("loginBox")?.classList.add("hidden");
+  document.getElementById("adminBox")?.classList.remove("hidden");
+
+  loadEvents();
+}
+
+function showLogin(){
+
+  document.getElementById("loginBox")?.classList.remove("hidden");
+  document.getElementById("adminBox")?.classList.add("hidden");
+}
+
+async function logout(){
+  await signOut(auth);
+  showLogin();
+}
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  renderHome();
+
+  document.getElementById("loginBtn")?.addEventListener(
+    "click",
+    login
+  );
+
+  document.getElementById("addEventBtn")?.addEventListener(
+    "click",
+    addEvent
+  );
+
+  document.getElementById("logoutBtn")?.addEventListener(
+    "click",
+    logout
+  );
+
+  onAuthStateChanged(auth,user=>{
+    if(user){
+      showAdmin();
+    }else{
+      showLogin();
+    }
+  });
+});
