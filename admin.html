@@ -1,111 +1,133 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Yadav Niwas — Admin</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Yadav Niwas | Admin</title>
+  <link rel="stylesheet" href="style.css">
 </head>
+<body data-page="admin">
+  <header class="site-header admin-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="index.html">
+        <span class="brand-mark">YN</span>
+        <span><strong>Yadav Niwas</strong><small>Admin Panel</small></span>
+      </a>
+      <a class="nav-map" href="index.html">← Home</a>
+    </div>
+  </header>
 
-<body class="admin-page">
+  <main class="admin-main">
+    <div class="container admin-container">
+      <section id="login-panel" class="auth-card">
+        <div class="auth-icon">🔐</div>
+        <p class="section-kicker">Owner Access</p>
+        <h1>Admin Login</h1>
+        <p class="muted">केवल अधिकृत owner/admin Firebase account से लॉगिन करें।</p>
+        <form id="login-form" novalidate>
+          <label for="admin-email">Admin Gmail</label>
+          <input id="admin-email" name="email" type="email" autocomplete="username" placeholder="rajeevkumar161120@gmail.com" required>
+          <label for="admin-password">Password</label>
+          <input id="admin-password" name="password" type="password" autocomplete="current-password" placeholder="Firebase Password" required>
+          <button id="login-btn" class="btn btn-primary btn-full" type="submit">Login</button>
+          <p id="login-message" class="form-message" role="alert"></p>
+        </form>
+      </section>
 
-<header class="admin-head">
-  <div class="brand">🏡 Yadav Niwas Admin</div>
-  <a href="index.html">← Website</a>
-</header>
+      <section id="dashboard-panel" class="dashboard hidden">
+        <div class="dashboard-top">
+          <div>
+            <p class="section-kicker">Owner Dashboard</p>
+            <h1>Yadav Niwas Admin</h1>
+            <p id="signed-in-user" class="muted"></p>
+          </div>
+          <button id="logout-btn" class="btn btn-outline" type="button">Logout</button>
+        </div>
 
-<div id="loginBox" class="panel narrow">
+        <div class="admin-grid">
+          <section class="panel">
+            <div class="panel-heading"><h2>📷 Add Photo</h2><span>GitHub images method</span></div>
+            <div class="notice">
+              <strong>Photo upload कैसे होगा?</strong>
+              <p>पहले GitHub के <code>images/</code> folder में photo डालें। फिर नीचे उसका path लिखें, जैसे <code>images/my-photo.jpg</code>। Firebase Storage की जरूरत नहीं है।</p>
+            </div>
+            <form id="gallery-form" novalidate>
+              <label for="gallery-title">Photo title</label>
+              <input id="gallery-title" type="text" maxlength="120" placeholder="जैसे — नया आंगन" required>
 
-  <h1>Admin Login</h1>
+              <label for="gallery-path">GitHub image path</label>
+              <input id="gallery-path" type="text" maxlength="300" placeholder="images/my-photo.jpg" required>
 
-  <p>केवल मालिक अपने Firebase account से login करें।</p>
+              <button class="btn btn-primary btn-full" type="submit">Photo Gallery में Add करें</button>
+              <p id="gallery-message" class="form-message" role="alert"></p>
+            </form>
+            <div class="panel-heading subheading"><h2>Saved Photos</h2><span>Firestore entries</span></div>
+            <div id="admin-gallery" class="admin-list">
+              <div class="loading-card">Photos लोड हो रही हैं…</div>
+            </div>
+          </section>
 
-  <input
-    id="email"
-    type="email"
-    placeholder="Admin Gmail"
-  >
+          <section class="panel">
+            <div class="panel-heading"><h2>📅 Add Event</h2><span>नई याद जोड़ें</span></div>
+            <form id="event-form" novalidate>
+              <label for="event-title">Event title</label>
+              <input id="event-title" type="text" maxlength="120" placeholder="जैसे — स्वतंत्रता दिवस समारोह" required>
 
-  <input
-    id="password"
-    type="password"
-    placeholder="Password"
-  >
+              <label for="event-date">Event date</label>
+              <input id="event-date" type="date" required>
 
-  <button
-    id="loginBtn"
-    class="btn primary full"
-  >
-    Login
-  </button>
+              <label for="event-text">Event description</label>
+              <textarea id="event-text" rows="6" maxlength="1000" placeholder="इस खास दिन की याद लिखें…" required></textarea>
 
-  <p id="loginMessage"></p>
+              <button class="btn btn-primary btn-full" type="submit">Save Event</button>
+              <p id="event-message" class="form-message" role="alert"></p>
+            </form>
 
-</div>
+            <div class="panel-heading subheading"><h2>Saved Events</h2><span>यादों की सूची</span></div>
+            <div id="admin-events" class="admin-events">
+              <div class="loading-card">Events लोड हो रहे हैं…</div>
+            </div>
+          </section>
 
-<div id="adminBox" class="admin-content hidden">
+          <section class="panel admin-wide">
+            <div class="panel-heading"><h2>📝 Stories / Updates</h2><span>नई जानकारी publish करें</span></div>
+            <form id="story-form" novalidate>
+              <label for="story-title">Story / Update title</label>
+              <input id="story-title" type="text" maxlength="150" placeholder="जैसे — घर में नया पौधारोपण" required>
 
-  <div class="panel">
-    <h1>Website Editor</h1>
+              <label for="story-date">Date</label>
+              <input id="story-date" type="date" required>
 
-    <p>
-      यहाँ से Events जोड़ और हटा सकते हैं।
-    </p>
+              <label for="story-text">Text</label>
+              <textarea id="story-text" rows="6" maxlength="3000" placeholder="Story या update लिखें…" required></textarea>
 
-    <button
-      id="logoutBtn"
-      class="btn primary"
-    >
-      Logout
-    </button>
-  </div>
+              <label for="story-photo">Optional photo path</label>
+              <input id="story-photo" type="text" maxlength="300" placeholder="images/story-photo.jpg (optional)">
 
-  <div class="admin-grid">
+              <label class="check-row">
+                <input id="story-published" type="checkbox" checked>
+                <span>अभी Publish करें</span>
+              </label>
 
-    <section class="panel">
+              <button class="btn btn-primary btn-full" type="submit">Publish Story / Update</button>
+              <p id="story-message" class="form-message" role="alert"></p>
+            </form>
 
-      <h2>🎉 Event जोड़ें</h2>
+            <div class="panel-heading subheading"><h2>Published / Saved Updates</h2><span>Delete भी कर सकते हैं</span></div>
+            <div id="admin-stories" class="admin-list">
+              <div class="loading-card">Stories लोड हो रही हैं…</div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </main>
 
-      <input
-        id="eventTitle"
-        placeholder="Event का नाम"
-      >
+  <footer class="site-footer">
+    <div class="container copyright">Yadav Niwas Admin • Firebase Authentication + Firestore</div>
+  </footer>
 
-      <input
-        id="eventDate"
-        type="date"
-      >
-
-      <textarea
-        id="eventText"
-        placeholder="Event के बारे में विवरण"
-      ></textarea>
-
-      <button
-        id="addEventBtn"
-        class="btn primary full"
-      >
-        Event Add करें
-      </button>
-
-    </section>
-
-  </div>
-
-  <div class="panel">
-
-    <h2>Saved Events</h2>
-
-    <div
-      id="adminEvents"
-      class="admin-list"
-    ></div>
-
-  </div>
-
-</div>
-
-<script type="module" src="script.js"></script>
-
+  <script type="module" src="script.js"></script>
 </body>
-</html>
+                </html>
