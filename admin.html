@@ -6,47 +6,106 @@
 <title>Yadav Niwas — Admin</title>
 <link rel="stylesheet" href="style.css">
 </head>
+
 <body class="admin-page">
-<header class="admin-head"><div class="brand">🏡 Yadav Niwas Admin</div><a href="index.html">← Website</a></header>
+
+<header class="admin-head">
+  <div class="brand">🏡 Yadav Niwas Admin</div>
+  <a href="index.html">← Website</a>
+</header>
 
 <div id="loginBox" class="panel narrow">
+
   <h1>Admin Login</h1>
-  <p>यह पैनल केवल वेबसाइट के मालिक के लिए है।</p>
-  <input id="pin" type="password" inputmode="numeric" placeholder="Admin PIN">
-  <button class="btn primary full" onclick="login()">Login</button>
-  <small>पहली बार PIN: <b>CHANGE_ME</b> — सुरक्षा के लिए इसे script.js में बदल दें।</small>
+
+  <p>केवल मालिक अपने Firebase account से login करें।</p>
+
+  <input
+    id="email"
+    type="email"
+    placeholder="Admin Gmail"
+  >
+
+  <input
+    id="password"
+    type="password"
+    placeholder="Password"
+  >
+
+  <button
+    id="loginBtn"
+    class="btn primary full"
+  >
+    Login
+  </button>
+
+  <p id="loginMessage"></p>
+
 </div>
 
 <div id="adminBox" class="admin-content hidden">
+
   <div class="panel">
     <h1>Website Editor</h1>
-    <p>यहाँ से events और gallery items जोड़ सकते हैं। इस demo में data इसी browser में save होता है।</p>
+
+    <p>
+      यहाँ से Events जोड़ और हटा सकते हैं।
+    </p>
+
+    <button
+      id="logoutBtn"
+      class="btn primary"
+    >
+      Logout
+    </button>
   </div>
 
   <div class="admin-grid">
-    <section class="panel">
-      <h2>📸 नई फोटो जोड़ें</h2>
-      <input id="photoTitle" placeholder="फोटो का नाम">
-      <input id="photoFile" type="file" accept="image/*">
-      <button class="btn primary full" onclick="addPhoto()">Photo Add करें</button>
-    </section>
 
     <section class="panel">
+
       <h2>🎉 Event जोड़ें</h2>
-      <input id="eventTitle" placeholder="Event का नाम">
-      <input id="eventDate" type="date">
-      <textarea id="eventText" placeholder="Event के बारे में विवरण"></textarea>
-      <button class="btn primary full" onclick="addEvent()">Event Add करें</button>
+
+      <input
+        id="eventTitle"
+        placeholder="Event का नाम"
+      >
+
+      <input
+        id="eventDate"
+        type="date"
+      >
+
+      <textarea
+        id="eventText"
+        placeholder="Event के बारे में विवरण"
+      ></textarea>
+
+      <button
+        id="addEventBtn"
+        class="btn primary full"
+      >
+        Event Add करें
+      </button>
+
     </section>
+
   </div>
 
   <div class="panel">
-    <h2>Saved Photos</h2><div id="adminPhotos" class="admin-list"></div>
+
+    <h2>Saved Events</h2>
+
+    <div
+      id="adminEvents"
+      class="admin-list"
+    ></div>
+
   </div>
-  <div class="panel">
-    <h2>Saved Events</h2><div id="adminEvents" class="admin-list"></div>
-  </div>
+
 </div>
-<script src="script.js"></script>
+
+<script type="module" src="script.js"></script>
+
 </body>
 </html>
