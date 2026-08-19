@@ -25,7 +25,7 @@ import {
 /* ================= FIREBASE ================= */
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDk8rPoi14IhKxJc7OWln9wqU2EffDYb-0",
+  apiKey: "AIzaSyDk8rPoi14IhKxJc7OXln9wqU2EffDYb-0",
   authDomain: "yadavniwas-9d443.firebaseapp.com",
   projectId: "yadavniwas-9d443",
   storageBucket: "yadavniwas-9d443.firebasestorage.app",
