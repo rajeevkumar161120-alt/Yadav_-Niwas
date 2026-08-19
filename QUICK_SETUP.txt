@@ -1,0 +1,18 @@
+YADAV NIWAS — QUICK SETUP
+
+1. इस ZIP को extract करके पूरा folder GitHub repository में upload करें.
+2. Firebase Console में Authentication → Sign-in method → Email/Password = Enabled रखें.
+3. Authentication → Users में admin email rajeevkumar161120@gmail.com मौजूद होना चाहिए.
+4. Firestore Database → Rules में FIREBASE_RULES.txt के rules paste करके Publish करें.
+5. GitHub Pages में website publish करें.
+6. /admin.html खोलें.
+7. Admin Gmail + Firebase password से login करें.
+8. Forgot Password से password reset email माँग सकते हैं.
+9. Login के बाद Add Photo में photo चुनकर सीधे upload करें.
+10. Gallery में Edit से title बदलें या नई photo replace करें; Delete भी है.
+
+FREE DESIGN:
+Photo upload Firebase Storage पर नहीं है. Browser photo को JPEG में compress करके Firestore document में रखता है, इसलिए छोटी/medium photos के लिए free Spark plan में काम करेगा. बहुत बड़ी photo को code automatically compress करेगा; फिर भी अगर Firestore document limit लगे तो छोटी photo चुनें.
+
+IMPORTANT:
+Firebase का free quota/limits लागू होंगे. किसी paid plan को activate करने की जरूरत नहीं है.

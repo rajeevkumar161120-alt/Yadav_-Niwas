@@ -29,8 +29,12 @@
           <label for="admin-email">Admin Gmail</label>
           <input id="admin-email" name="email" type="email" autocomplete="username" placeholder="rajeevkumar161120@gmail.com" required>
           <label for="admin-password">Password</label>
-          <input id="admin-password" name="password" type="password" autocomplete="current-password" placeholder="Firebase Password" required>
+          <div class="password-wrap">
+            <input id="admin-password" name="password" type="password" autocomplete="current-password" placeholder="Firebase Password" required>
+            <button id="toggle-password" class="password-toggle" type="button" aria-label="Password दिखाएँ">👁️</button>
+          </div>
           <button id="login-btn" class="btn btn-primary btn-full" type="submit">Login</button>
+          <button id="forgot-password" class="btn btn-outline btn-full" type="button">Forgot Password?</button>
           <p id="login-message" class="form-message" role="alert"></p>
         </form>
       </section>
@@ -47,19 +51,20 @@
 
         <div class="admin-grid">
           <section class="panel">
-            <div class="panel-heading"><h2>📷 Add Photo</h2><span>GitHub images method</span></div>
+            <div class="panel-heading"><h2>📷 Add Photo</h2><span>Free Firebase upload</span></div>
             <div class="notice">
-              <strong>Photo upload कैसे होगा?</strong>
-              <p>पहले GitHub के <code>images/</code> folder में photo डालें। फिर नीचे उसका path लिखें, जैसे <code>images/my-photo.jpg</code>। Firebase Storage की जरूरत नहीं है।</p>
+              <strong>Photo सीधे यहाँ से upload करें</strong>
+              <p>Photo चुनें, title दें और upload करें। Image browser में compress होकर Firestore में save होगी; Firebase Storage की जरूरत नहीं।</p>
             </div>
             <form id="gallery-form" novalidate>
               <label for="gallery-title">Photo title</label>
               <input id="gallery-title" type="text" maxlength="120" placeholder="जैसे — नया आंगन" required>
 
-              <label for="gallery-path">GitHub image path</label>
-              <input id="gallery-path" type="text" maxlength="300" placeholder="images/my-photo.jpg" required>
+              <label for="gallery-file">Photo चुनें</label>
+              <input id="gallery-file" type="file" accept="image/*" required>
+              <div id="gallery-preview" class="photo-preview" hidden></div>
 
-              <button class="btn btn-primary btn-full" type="submit">Photo Gallery में Add करें</button>
+              <button class="btn btn-primary btn-full" type="submit">Photo Upload करके Gallery में Add करें</button>
               <p id="gallery-message" class="form-message" role="alert"></p>
             </form>
             <div class="panel-heading subheading"><h2>Saved Photos</h2><span>Firestore entries</span></div>

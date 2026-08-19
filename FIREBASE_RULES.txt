@@ -1,0 +1,34 @@
+YADAV NIWAS — FIRESTORE RULES
+
+Firebase Console → Firestore Database → Rules में यह rules लगाएँ.
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'rajeevkumar161120@gmail.com';
+    }
+
+    match /gallery/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /homes/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /stories/{id} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
+
+IMPORTANT:
+- Email/Password Authentication Firebase Authentication में enabled होना चाहिए.
+- Admin user का email exactly: rajeevkumar161120@gmail.com
+- Website को GitHub Pages/Netlify जैसे HTTPS hosting पर चलाएँ.
